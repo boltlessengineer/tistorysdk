@@ -50,6 +50,21 @@ func NewClient(clientID string, clientSK string) *Client {
 	return c
 }
 
+// GetAuthCodeURL() returns URL to request Authorization Code
+func (c *Client) GetAuthCodeURL(state string) *url.URL {
+	u, err := url.Parse(fmt.Sprintf("%s/%s", oauthURL, "authorize"))
+	if err != nil {
+		panic(err)
+	}
+	q := u.Query()
+	q.Add("client_id", c.ID)
+	q.Add("redirect_uri", c.RedirectUri)
+	q.Add("response_type", "code")
+	q.Add("state", state)
+	u.RawQuery = q.Encode()
+	return u
+}
+
 const (
 	AccessTokenUrl string = "https://www.tistory.com/oauth/access_token"
 )
