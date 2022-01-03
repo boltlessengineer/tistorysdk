@@ -31,16 +31,17 @@ type Client struct {
 	Comment  CommentService
 }
 
-func NewClient(clientID string, clientSK string) *Client {
+func NewClient(clientID string, clientSK string, redirect string) *Client {
 	u, err := url.Parse(apiURL)
 	if err != nil {
 		panic(err)
 	}
 	c := &Client{
-		httpClient: http.DefaultClient,
-		baseUrl:    u,
-		ID:         clientID,
-		SK:         clientSK,
+		httpClient:  http.DefaultClient,
+		baseUrl:     u,
+		ID:          clientID,
+		SK:          clientSK,
+		RedirectUri: redirect,
 	}
 
 	c.Post = PostService{apiClient: c}
