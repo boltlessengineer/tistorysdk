@@ -33,6 +33,6 @@ func TestList(t *testing.T) {
 		if err := json.Unmarshal([]byte(ExampleJSON), &post); err != nil {
 			t.Fatal(err)
 		}
-		t.Log(post)
+		//t.Log(post)
 	})
 }
