@@ -70,6 +70,52 @@ const (
 	AccessTokenUrl string = "https://www.tistory.com/oauth/access_token"
 )
 
+func GetToken(clientID, clientSK, redirectUri, code string) (string, error) {
+	u, err := url.Parse(AccessTokenUrl)
+	if err != nil {
+		return "", err
+	}
+
+	q := u.Query()
+	q.Add("client_id", clientID)
+	q.Add("client_secret", clientSK)
+	q.Add("redirect_uri", redirectUri)
+	q.Add("code", code)
+	q.Add("grant_type", "authorization_code")
+	u.RawQuery = q.Encode()
+
+	req, err := http.NewRequest(http.MethodGet, u.String(), nil)
+	if err != nil {
+		return "", err
+	}
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+	s := string(b)
+	const (
+		token_format string = "access_token=%s"
+		error_format string = "error=%s&error_description=%s"
+	)
+	var token string
+	if _, err := fmt.Sscanf(s, token_format, &token); err != nil {
+		var e, ed string
+		if _, err := fmt.Sscanf(s, error_format, &e, &ed); err != nil {
+			if err != nil {
+				return "", err
+			}
+			return "", errors.New(fmt.Sprintf("[Error - %s] %s", e, ed))
+		}
+	}
+
+	return token, nil
+}
+
 // GetToken retrieves Access Token with Authorization Code
 func (c *Client) SetToken(code string) error {
 	u, err := url.Parse(AccessTokenUrl)
