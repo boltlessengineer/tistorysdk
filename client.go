@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	apiURL   = "https://www.tistory.com/apis"
+	apiURL   = "https://www.tistory.com/apis/"
 	oauthURL = "https://www.tistory.com/oauth"
 )
 
@@ -164,11 +164,12 @@ func (c *Client) SetToken(code string) error {
 	return nil
 }
 
-func (c *Client) request(method string, urlStr string, queryParams map[string]string) (*json.RawMessage, error) {
+func (c *Client) request(method string, urlStr string, queryParams map[string]string, requestBody map[string]string) (*json.RawMessage, error) {
 	u, err := c.baseUrl.Parse(urlStr)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(u.String())
 
 	var buf io.ReadWriter
 	// TODO - write request body to buf
@@ -199,6 +200,8 @@ func (c *Client) request(method string, urlStr string, queryParams map[string]st
 	if res.StatusCode != http.StatusOK {
 		var tmp BasicResBody
 		if err := json.Unmarshal(r.Tistory, &tmp); err != nil {
+			b, _ := io.ReadAll(res.Body)
+			fmt.Println(string(b))
 			return nil, err
 		}
 		return nil, errors.New(tmp.ErrorMessage)

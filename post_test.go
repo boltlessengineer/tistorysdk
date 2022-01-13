@@ -36,3 +36,8 @@ func TestList(t *testing.T) {
 		//t.Log(post)
 	})
 }
+
+func TestPost(t *testing.T) {
+	p := tistorysdk.Post{}
+	t.Log(p)
+}

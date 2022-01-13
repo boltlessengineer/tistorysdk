@@ -44,7 +44,7 @@ func (ps *PostService) List(blogName string, pageNum int) (*ListPostResItem, err
 		"blogName":     blogName,
 		"page":         strconv.Itoa(pageNum),
 	}
-	raw, err := ps.apiClient.request(http.MethodGet, "post/list", q)
+	raw, err := ps.apiClient.request(http.MethodGet, "post/list", q, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -82,22 +82,22 @@ type ReadPostResItem struct {
 	Post
 }
 
-func (ps *PostService) Write(blogName string, post *Post) (*UpdatePostResponse, error) {
+func (ps *PostService) Write(token string, blogName string, post *Post) (*UpdatePostResponse, error) {
 	q := map[string]string{
-		"access_token":  ps.apiClient.accessToken,
-		"output":        "json",
-		"blogName":      blogName,
-		"title":         post.Title,
-		"content":       post.Content,
-		"visibility":    post.Visibility.String(),
-		"category":      post.CategoryID.String(),
-		"published":     "TODO", // TODO
+		"access_token": token,
+		"output":       "json",
+		"blogName":     blogName,
+		"title":        post.Title,
+		"content":      post.Content,
+		"visibility":   post.Visibility.String(),
+		"category":     post.CategoryID.String(),
+		// "published":
 		"slogan":        post.Slogan,
 		"tag":           strings.Join(post.Tags.Tag, ","),
 		"acceptComment": post.AcceptComment.String(),
 		"password":      post.Password,
 	}
-	raw, err := ps.apiClient.request(http.MethodPost, "post/write", q)
+	raw, err := ps.apiClient.request(http.MethodPost, "post/write", q, nil)
 	if err != nil {
 		return nil, err
 	}
