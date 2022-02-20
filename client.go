@@ -29,6 +29,7 @@ type Client struct {
 	Post     PostService
 	Category CategoryService
 	Comment  CommentService
+	Utils    UtilsService
 }
 
 func NewClient(clientID string, clientSK string, redirect string) *Client {
@@ -47,6 +48,7 @@ func NewClient(clientID string, clientSK string, redirect string) *Client {
 	c.Post = PostService{apiClient: c}
 	c.Category = CategoryService{apiClient: c}
 	c.Comment = CommentService{apiClient: c}
+	c.Utils = UtilsService{apiClient: c}
 
 	return c
 }
@@ -100,68 +102,19 @@ func GetToken(clientID, clientSK, redirectUri, code string) (string, error) {
 	s := string(b)
 	const (
 		token_format string = "access_token=%s"
-		error_format string = "error=%s&error_description=%s"
+		// error_format string = "error=%s&error_description=%s"
 	)
 	var token string
 	if _, err := fmt.Sscanf(s, token_format, &token); err != nil {
-		var e, ed string
-		if _, err := fmt.Sscanf(s, error_format, &e, &ed); err != nil {
-			if err != nil {
-				return "", err
-			}
-			return "", errors.New(fmt.Sprintf("[Error - %s] %s", e, ed))
-		}
+		return "", errors.New(fmt.Sprintf("Error Parsing token, response : %s", s))
 	}
 
 	return token, nil
 }
 
 // GetToken retrieves Access Token with Authorization Code
-func (c *Client) SetToken(code string) error {
-	u, err := url.Parse(AccessTokenUrl)
-	if err != nil {
-		return err
-	}
-
-	q := u.Query()
-	q.Add("client_id", c.ID)
-	q.Add("client_secret", c.SK)
-	q.Add("redirect_uri", c.RedirectUri)
-	q.Add("code", code)
-	q.Add("grant_type", "authorization_code")
-	u.RawQuery = q.Encode()
-
-	req, err := http.NewRequest(http.MethodGet, u.String(), nil)
-	if err != nil {
-		return err
-	}
-	res, err := c.httpClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
-	b, err := io.ReadAll(res.Body)
-	if err != nil {
-		return err
-	}
-	s := string(b)
-	const (
-		token_format string = "access_token=%s"
-		error_format string = "error=%s&error_description=%s"
-	)
-	var token string
-	if _, err := fmt.Sscanf(s, token_format, &token); err != nil {
-		var e, ed string
-		if _, err := fmt.Sscanf(s, error_format, &e, &ed); err != nil {
-			if err != nil {
-				return err
-			}
-			return errors.New(fmt.Sprintf("[Error - %s] %s", e, ed))
-		}
-	}
+func (c *Client) SetToken(token string) {
 	c.accessToken = token
-
-	return nil
 }
 
 func (c *Client) request(method string, urlStr string, queryParams map[string]string, requestBody map[string]string) (*json.RawMessage, error) {
@@ -217,10 +170,6 @@ type BasicResponse struct {
 type BasicResBody struct {
 	Status       SInt   `json:"status"`
 	ErrorMessage string `json:"error_message"`
-}
-
-type CategoryService struct {
-	apiClient *Client
 }
 
 type CommentService struct {

@@ -1,10 +1,15 @@
 package tistorysdk
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Post struct {
@@ -23,7 +28,7 @@ type PostMajor struct {
 	Title      string `json:"title"`
 	Url        string `json:"postUrl"`
 	Visibility SInt   `json:"visibility"`
-	CategoryID SInt   `json:"categoryId"`
+	CategoryID string `json:"categoryId"`
 	Comments   SInt   `json:"comments"`
 	Trackbacks SInt   `json:"trackbacks"`
 	DateStr    string `json:"date"`
@@ -38,6 +43,7 @@ type PostService struct {
 }
 
 func (ps *PostService) List(blogName string, pageNum int) (*ListPostResItem, error) {
+	fmt.Println(ps.apiClient.accessToken)
 	q := map[string]string{
 		"access_token": ps.apiClient.accessToken,
 		"output":       "json",
@@ -82,16 +88,16 @@ type ReadPostResItem struct {
 	Post
 }
 
-func (ps *PostService) Write(token string, blogName string, post *Post) (*UpdatePostResponse, error) {
+func (ps *PostService) Write(blogName string, post *Post) (*UpdatePostResponse, error) {
 	q := map[string]string{
-		"access_token": token,
-		"output":       "json",
-		"blogName":     blogName,
-		"title":        post.Title,
-		"content":      post.Content,
-		"visibility":   post.Visibility.String(),
-		"category":     post.CategoryID.String(),
-		// "published":
+		"access_token":  ps.apiClient.accessToken,
+		"output":        "json",
+		"blogName":      blogName,
+		"title":         post.Title,
+		"content":       post.Content,
+		"visibility":    post.Visibility.String(),
+		"category":      post.CategoryID,
+		"published":     fmt.Sprint(time.Time(post.Date).Unix()),
 		"slogan":        post.Slogan,
 		"tag":           strings.Join(post.Tags.Tag, ","),
 		"acceptComment": post.AcceptComment.String(),
@@ -105,11 +111,34 @@ func (ps *PostService) Write(token string, blogName string, post *Post) (*Update
 	if err = json.Unmarshal(*raw, &res); err != nil {
 		return nil, err
 	}
-	return &res, err
+	return &res, nil
 }
 
 func (ps *PostService) Update(blogName string, post *Post) (*UpdatePostResponse, error) {
-	return nil, nil
+	q := map[string]string{
+		"access_token":  ps.apiClient.accessToken,
+		"output":        "json",
+		"blogName":      blogName,
+		"postId":        post.ID.String(),
+		"title":         post.Title,
+		"content":       post.Content,
+		"visibility":    post.Visibility.String(),
+		"category":      post.CategoryID,
+		"published":     fmt.Sprint(time.Time(post.Date).Unix()),
+		"slogan":        post.Slogan,
+		"tag":           strings.Join(post.Tags.Tag, ","),
+		"acceptComment": post.AcceptComment.String(),
+		"password":      post.Password,
+	}
+	raw, err := ps.apiClient.request(http.MethodPost, "post/update", q, nil)
+	if err != nil {
+		return nil, err
+	}
+	var res UpdatePostResponse
+	if err = json.Unmarshal(*raw, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
 }
 
 type UpdatePostResponse struct {
@@ -118,12 +147,40 @@ type UpdatePostResponse struct {
 	Url    string `json:"url"`
 }
 
-func (ps *PostService) UploadFile() (*UploadFileResponse, error) {
-	return nil, nil
+func (ps *PostService) UploadFile(blogName string, filename string, filebuf io.Reader) (*UploadFileResponse, error) {
+	url := "https://www.tistory.com/apis/post/attach"
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+	writer.WriteField("access_token", ps.apiClient.accessToken)
+	writer.WriteField("output", "json")
+	writer.WriteField("blogName", blogName)
+	part, err := writer.CreateFormFile("uploadedfile", filename)
+	io.Copy(part, filebuf)
+	writer.Close()
+
+	req, err := http.NewRequest(http.MethodPost, url, body)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Content-Type", writer.FormDataContentType())
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	var r struct {
+		Tistory UploadFileResponse `json:"tistory"`
+	}
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Error uploading file to Tistory :%s", res.Status)
+	}
+	if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
+		return nil, err
+	}
+	return &r.Tistory, nil
 }
 
 type UploadFileResponse struct {
-	Status   SInt   `json:"status"`
 	Url      string `json:"url"`
 	Replacer string `json:"replacer"`
 }
