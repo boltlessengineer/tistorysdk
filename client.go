@@ -20,10 +20,6 @@ type Client struct {
 	httpClient *http.Client
 	baseUrl    *url.URL
 
-	ID          string
-	SK          string
-	RedirectUri string
-
 	accessToken string
 
 	Post     PostService
@@ -32,7 +28,7 @@ type Client struct {
 	Utils    UtilsService
 }
 
-func NewClient(clientID string, clientSK string, redirect string) *Client {
+func NewClient(accessToken string) *Client {
 	u, err := url.Parse(apiURL)
 	if err != nil {
 		panic(err)
@@ -40,9 +36,7 @@ func NewClient(clientID string, clientSK string, redirect string) *Client {
 	c := &Client{
 		httpClient:  http.DefaultClient,
 		baseUrl:     u,
-		ID:          clientID,
-		SK:          clientSK,
-		RedirectUri: redirect,
+		accessToken: accessToken,
 	}
 
 	c.Post = PostService{apiClient: c}
@@ -54,14 +48,14 @@ func NewClient(clientID string, clientSK string, redirect string) *Client {
 }
 
 // GetAuthCodeURL() returns URL to request Authorization Code
-func (c *Client) GetAuthCodeURL(state string) *url.URL {
+func GetAuthCodeURL(clientID, redirectUri, state string) *url.URL {
 	u, err := url.Parse(fmt.Sprintf("%s/%s", oauthURL, "authorize"))
 	if err != nil {
 		panic(err)
 	}
 	q := u.Query()
-	q.Add("client_id", c.ID)
-	q.Add("redirect_uri", c.RedirectUri)
+	q.Add("client_id", clientID)
+	q.Add("redirect_uri", redirectUri)
 	q.Add("response_type", "code")
 	q.Add("state", state)
 	u.RawQuery = q.Encode()

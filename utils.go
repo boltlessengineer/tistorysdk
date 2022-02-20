@@ -19,7 +19,7 @@ type UtilsService struct {
 	return []Category{}, nil
 } */
 
-func (us *UtilsService) FindCategoryByLabel(blogName, categoryLabel string) ([]Category, error) {
+func (us *UtilsService) FindCategory(blogName, categoryLabel string) ([]Category, error) {
 	categories, err := us.apiClient.Category.List(blogName)
 	fmt.Println(categories)
 	if err != nil {
