@@ -88,7 +88,7 @@ type ReadPostResItem struct {
 	Post
 }
 
-func (ps *PostService) Write(blogName string, post *Post) (*UpdatePostResponse, error) {
+func (ps *PostService) Write(blogName string, post *Post) (*WritePostResponse, error) {
 	q := map[string]string{
 		"access_token":  ps.apiClient.accessToken,
 		"output":        "json",
@@ -107,14 +107,14 @@ func (ps *PostService) Write(blogName string, post *Post) (*UpdatePostResponse, 
 	if err != nil {
 		return nil, err
 	}
-	var res UpdatePostResponse
+	var res WritePostResponse
 	if err = json.Unmarshal(*raw, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
 }
 
-func (ps *PostService) Update(blogName string, post *Post) (*UpdatePostResponse, error) {
+func (ps *PostService) Update(blogName string, post *Post) (*WritePostResponse, error) {
 	q := map[string]string{
 		"access_token":  ps.apiClient.accessToken,
 		"output":        "json",
@@ -134,14 +134,14 @@ func (ps *PostService) Update(blogName string, post *Post) (*UpdatePostResponse,
 	if err != nil {
 		return nil, err
 	}
-	var res UpdatePostResponse
+	var res WritePostResponse
 	if err = json.Unmarshal(*raw, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
 }
 
-type UpdatePostResponse struct {
+type WritePostResponse struct {
 	Status SInt   `json:"status"`
 	PostID SInt   `json:"postId"`
 	Url    string `json:"url"`
