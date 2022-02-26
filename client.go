@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	//"errors"
 	"io"
@@ -116,22 +117,28 @@ func (c *Client) request(method string, urlStr string, queryParams map[string]st
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(u.String())
+	fmt.Println("tistorysdk request:", u.String())
 
-	var buf io.ReadWriter
+	form := url.Values{}
 	// TODO - write request body to buf
+	if requestBody != nil && len(requestBody) > 0 {
+		for key, val := range requestBody {
+			form.Add(key, val)
+		}
+	}
 
-	if len(queryParams) > 0 {
+	if queryParams != nil && len(queryParams) > 0 {
 		q := u.Query()
 		for k, v := range queryParams {
 			q.Add(k, v)
 		}
 		u.RawQuery = q.Encode()
 	}
-	req, err := http.NewRequest(method, u.String(), buf)
+	req, err := http.NewRequest(method, u.String(), strings.NewReader(form.Encode()))
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	res, err := c.httpClient.Do(req)
 	if err != nil {

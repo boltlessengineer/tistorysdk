@@ -89,7 +89,8 @@ type ReadPostResItem struct {
 }
 
 func (ps *PostService) Write(blogName string, post *Post) (*WritePostResponse, error) {
-	q := map[string]string{
+	q := map[string]string{}
+	b := map[string]string{
 		"access_token":  ps.apiClient.accessToken,
 		"output":        "json",
 		"blogName":      blogName,
@@ -103,7 +104,7 @@ func (ps *PostService) Write(blogName string, post *Post) (*WritePostResponse, e
 		"acceptComment": post.AcceptComment.String(),
 		"password":      post.Password,
 	}
-	raw, err := ps.apiClient.request(http.MethodPost, "post/write", q, nil)
+	raw, err := ps.apiClient.request(http.MethodPost, "post/write", q, b)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +116,10 @@ func (ps *PostService) Write(blogName string, post *Post) (*WritePostResponse, e
 }
 
 func (ps *PostService) Update(blogName string, post *Post) (*WritePostResponse, error) {
-	q := map[string]string{
+	fmt.Println("----------------------------")
+	fmt.Println("Editing post id:", post.ID.String())
+	fmt.Println("----------------------------")
+	b := map[string]string{
 		"access_token":  ps.apiClient.accessToken,
 		"output":        "json",
 		"blogName":      blogName,
@@ -130,7 +134,7 @@ func (ps *PostService) Update(blogName string, post *Post) (*WritePostResponse, 
 		"acceptComment": post.AcceptComment.String(),
 		"password":      post.Password,
 	}
-	raw, err := ps.apiClient.request(http.MethodPost, "post/update", q, nil)
+	raw, err := ps.apiClient.request(http.MethodPost, "post/modify", nil, b)
 	if err != nil {
 		return nil, err
 	}
