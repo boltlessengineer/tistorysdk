@@ -43,7 +43,6 @@ type PostService struct {
 }
 
 func (ps *PostService) List(blogName string, pageNum int) (*ListPostResItem, error) {
-	fmt.Println(ps.apiClient.accessToken)
 	q := map[string]string{
 		"access_token": ps.apiClient.accessToken,
 		"output":       "json",

@@ -155,8 +155,7 @@ func (c *Client) request(method string, urlStr string, queryParams map[string]st
 		var tmp BasicResBody
 		if err := json.Unmarshal(r.Tistory, &tmp); err != nil {
 			b, _ := io.ReadAll(res.Body)
-			fmt.Println(string(b))
-			return nil, err
+			return nil, fmt.Errorf("Can't json unmarshal response. Raw response : %s", string(b))
 		}
 		return nil, errors.New(tmp.ErrorMessage)
 	}

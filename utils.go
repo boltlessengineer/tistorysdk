@@ -1,7 +1,5 @@
 package tistorysdk
 
-import "fmt"
-
 type UtilsService struct {
 	apiClient *Client
 }
@@ -21,12 +19,10 @@ type UtilsService struct {
 
 func (us *UtilsService) FindCategory(blogName, categoryLabel string) ([]Category, error) {
 	categories, err := us.apiClient.Category.List(blogName)
-	fmt.Println(categories)
 	if err != nil {
 		return nil, err
 	}
 	for _, c := range categories {
-		fmt.Println(c.Label)
 		if c.Label == categoryLabel {
 			return []Category{c}, nil
 		}
