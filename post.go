@@ -116,9 +116,6 @@ func (ps *PostService) Write(blogName string, post *Post) (*WritePostResponse, e
 }
 
 func (ps *PostService) Update(blogName string, post *Post) (*WritePostResponse, error) {
-	fmt.Println("----------------------------")
-	fmt.Println("Editing post id:", post.ID.String())
-	fmt.Println("----------------------------")
 	b := map[string]string{
 		"access_token":  ps.apiClient.accessToken,
 		"output":        "json",
